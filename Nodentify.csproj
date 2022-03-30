@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net4.7.2</TargetFramework>
+    <RootNamespace>Nodentify</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    <AssemblyName>Nodentify</AssemblyName>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>SymlinkedLibraries\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="BaseX">
+      <HintPath>SymlinkedLibraries\BaseX.dll</HintPath>
+    </Reference>
+    <Reference Include="CodeX">
+      <HintPath>SymlinkedLibraries\CodeX.dll</HintPath>
+    </Reference>
+    <Reference Include="FrooxEngine">
+      <HintPath>SymlinkedLibraries\FrooxEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="NeosModLoader">
+      <HintPath>SymlinkedLibraries\NeosModLoader.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+  </ItemGroup>
+  
+</Project>
