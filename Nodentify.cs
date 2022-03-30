@@ -120,11 +120,9 @@ public class Nodentify : NeosMod
         {
             if (!(__instance is LogixNode) || !(__instance as LogixNode).HasVisual)
                 return;
-            UniLog.Log("Nodentify.ComponentBase_OnStart_Patch");
             
             if (__instance is IReferenceNode)
             {
-                UniLog.Log("Is Reference");
                 Slot? canvas = __instance.Slot.FindChild((s) => s.Tag == "Nodentify.Node.AlteredRef");
                 if (canvas == null)
                     return;
@@ -136,18 +134,15 @@ public class Nodentify : NeosMod
                 refButton.LocalReleased += release;
                 return;
             }
-            UniLog.Log("Is Node");
             Slot s = __instance.Slot.FindChild((s) => s.Tag == "Nodentify.Node.AlteredText", 25);
             if (s == null)
                 return;
-                
+
             Button b = s.GetComponent<Button>();
             TextEditor textEditor = s.GetComponent<TextEditor>();
 
             if(b == null || textEditor == null)
                 return;
-            
-            UniLog.Log("Conditions met: " + s.Name + " " + b.Name + " " + textEditor.Name);
             
             b.LocalPressed += press;
             b.LocalPressing += (IButton b, ButtonEventData d) => hold(b, d, textEditor);
