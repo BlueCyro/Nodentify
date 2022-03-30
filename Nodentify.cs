@@ -75,7 +75,7 @@ public class Nodentify : NeosMod
                 return;
             Slot textSlot = t.Slot;
             Slot instanceSlot = __instance.Slot;
-            instanceSlot.Tag = instanceSlot.Tag == null || instanceSlot.Tag.Length == 0 ? null : instanceSlot.Tag.ToString();
+            instanceSlot.Tag = instanceSlot.Tag == null || instanceSlot.Tag.Length == 0 ? null : instanceSlot.Tag;
             string? tagLabel = instanceSlot.Tag;
             
             string originalText = t.Content.Value;
