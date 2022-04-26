@@ -1,12 +1,31 @@
-dotnet build
+
+param (
+    [switch] $NoRun = $false,
+    [switch] $ReleaseMode = $false
+)
+
+$BinaryLocation = "Debug"
+if($ReleaseMode)
+{
+    $BinaryLocation = "Release"
+    dotnet publish -c Release
+}
+else 
+{
+    dotnet build    
+}
+
+if($NoRun)
+{
+    exit
+}
 
 $dir = Split-Path -Path (Get-Location) -Leaf
 $NeosDir = "C:\Program Files (x86)\Steam\steamapps\common\NeosVR\"
 $NeosExe = "$NeosDir\Neos.exe"
-$AssemblyLocation = "$(Get-Location)\bin\Debug\net4.7.2\$dir.dll"
+$AssemblyLocation = "$(Get-Location)\bin\$BinaryLocation\net4.7.2\$dir.dll"
 $LogFolder = "$NeosDir\Logs\"
 $nml_mods = "$NeosDir\nml_mods\"
-$dllpath = "$nml_mods\$dir.dll"
 
 Copy-Item -Force -Path $AssemblyLocation -Destination $nml_mods
 
