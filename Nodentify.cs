@@ -23,7 +23,7 @@ public class Nodentify : NeosMod
 
     static void hold(IButton b, ButtonEventData d, TextEditor e)
     {
-        if (e.IsDestroyed || flag)
+        if (e == null || e.IsDestroyed || flag)
             return;
         _lastTime = Engine.Current.WorldManager.FocusedWorld.Time.WorldTime - _then;
         if (_lastTime > Config!.GetValue<double>(PressDelay))
