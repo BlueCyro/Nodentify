@@ -26,7 +26,7 @@ public class Nodentify : NeosMod
         if (e.IsDestroyed || flag)
             return;
         _lastTime = Engine.Current.WorldManager.FocusedWorld.Time.WorldTime - _then;
-        if (_lastTime > Config.GetValue<double>(PressDelay))
+        if (_lastTime > Config!.GetValue<double>(PressDelay))
         {
             flag = true;
             e.Focus();
@@ -38,7 +38,7 @@ public class Nodentify : NeosMod
         if (flag)
             return;
         _lastTime = Engine.Current.WorldManager.FocusedWorld.Time.WorldTime - _then;
-        if (_lastTime > Config.GetValue<double>(PressDelay))
+        if (_lastTime > Config!.GetValue<double>(PressDelay))
         {
             flag = true;
             InspectorHelper.OpenInspectorForTarget(__instance.Target ?? __instance, null, __instance.Target != null);
@@ -57,7 +57,7 @@ public class Nodentify : NeosMod
     {
         Harmony harmony = new Harmony("net.Cyro.Nodentify");
         Config = GetConfiguration();
-        Config.Save(true);
+        Config!.Save(true);
         harmony.PatchAll();
     }
 
@@ -118,7 +118,7 @@ public class Nodentify : NeosMod
     {
         static void Postfix(Component __instance)
         {
-            if (!(__instance is LogixNode) || !(__instance as LogixNode).HasVisual)
+            if (!(__instance as LogixNode)?.HasVisual == true)
                 return;
             
             if (__instance is IReferenceNode)
@@ -130,7 +130,7 @@ public class Nodentify : NeosMod
                 IReferenceNode? reference = __instance as IReferenceNode;
                 Button refButton = canvas.GetComponent<Button>();
                 refButton.LocalPressed += press;
-                refButton.LocalPressing += (IButton b, ButtonEventData d) => refHold(b, d, reference);
+                refButton.LocalPressing += (IButton b, ButtonEventData d) => refHold(b, d, reference!);
                 refButton.LocalReleased += release;
                 return;
             }
