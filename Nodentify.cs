@@ -118,7 +118,7 @@ public class Nodentify : NeosMod
     {
         static void Postfix(Component __instance)
         {
-            if (!(__instance as LogixNode)?.HasVisual == true)
+            if (!(__instance is LogixNode) || !(__instance as LogixNode)?.HasVisual == true)
                 return;
             
             if (__instance is IReferenceNode)
