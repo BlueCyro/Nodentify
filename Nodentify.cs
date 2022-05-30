@@ -12,7 +12,7 @@ public class Nodentify : NeosMod
 {
     public override string Author => "Cyro";
     public override string Name => "Nodentify";
-    public override string Version => "1.0.3";
+    public override string Version => "1.0.4";
 
     private static ModConfiguration? Config;
 
