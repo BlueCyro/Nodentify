@@ -102,6 +102,9 @@ public class Nodentify : NeosMod
             Slot? canvas = root.FindChild((s) => s.Name == "Canvas");
             if (canvas == null)
                 return;
+            Canvas? c = canvas.GetComponent<Canvas>();
+            if (c == null) return;
+            c.IgnoreTouchesFromBehind.Value = false;
             canvas.Tag = "Nodentify.Node.AlteredRef";
             Button b = canvas.AttachComponent<Button>();
             b.LocalPressed += press;
