@@ -1,5 +1,6 @@
 
 param (
+    [string] $NeosDir = "C:\Program Files (x86)\Steam\steamapps\common\NeosVR\",
     [switch] $NoRun = $false,
     [switch] $ReleaseMode = $false
 )
@@ -21,7 +22,6 @@ if($NoRun)
 }
 
 $dir = Split-Path -Path (Get-Location) -Leaf
-$NeosDir = "C:\Program Files (x86)\Steam\steamapps\common\NeosVR\"
 $NeosExe = "$NeosDir\Neos.exe"
 $AssemblyLocation = "$(Get-Location)\bin\$BinaryLocation\net4.7.2\$dir.dll"
 $LogFolder = "$NeosDir\Logs\"
