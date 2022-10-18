@@ -19,6 +19,9 @@ public class Nodentify : NeosMod
     [AutoRegisterConfigKey]
     private static ModConfigurationKey<double> PressDelay = new ModConfigurationKey<double>("PressDelay", "Press delay for node actions", () => 0.25);
 
+    [AutoRegisterConfigKey]
+    private static ModConfigurationKey<bool> AllowModifiedNodeNames = new ModConfigurationKey<bool>("AllowModifiedNodeNames", "Allow LogiX node names to be edited and to show custom names", () => true);
+
     static void press(IButton b, ButtonEventData d) { _then = Engine.Current.WorldManager.FocusedWorld.Time.WorldTime; }
 
     static void hold(IButton b, ButtonEventData d, TextEditor e)
@@ -67,7 +70,7 @@ public class Nodentify : NeosMod
     {
         static void Postfix(LogixNode __instance, UIBuilder __result, Slot root, float minWidth = 0f, float minHeight = 0f)
         {
-            if (__result.Current == null)
+            if (__result.Current == null || !Config!.GetValue(AllowModifiedNodeNames))
                 return;
 
             Text? t =  __result.Current.GetComponent<Text>();
@@ -137,6 +140,9 @@ public class Nodentify : NeosMod
                 refButton.LocalReleased += release;
                 return;
             }
+
+            if (!Config!.GetValue(AllowModifiedNodeNames))
+                return;
             Slot s = __instance.Slot.FindChild((s) => s.Tag == "Nodentify.Node.AlteredText", 25);
             if (s == null)
                 return;
