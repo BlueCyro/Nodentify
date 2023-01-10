@@ -5,8 +5,6 @@ using FrooxEngine.LogiX;
 using FrooxEngine.UIX;
 using BaseX;
 
-
-
 namespace Nodentify;
 public class Nodentify : NeosMod
 {
@@ -14,86 +12,80 @@ public class Nodentify : NeosMod
     public override string Name => "Nodentify";
     public override string Version => "1.0.4";
 
-    private static ModConfiguration? Config;
+    private static ModConfiguration? _config;
+    
+    private static double _lastTime;
+    private static bool _flag;
+    private static double _then;
 
     [AutoRegisterConfigKey]
-    private static ModConfigurationKey<double> PressDelay = new ModConfigurationKey<double>("PressDelay", "Press delay for node actions", () => 0.25);
+    private static ModConfigurationKey<double> _pressDelay = new("PressDelay", "Press delay for node actions",
+        () => 0.25);
 
     [AutoRegisterConfigKey]
-    private static ModConfigurationKey<bool> AllowModifiedNodeNames = new ModConfigurationKey<bool>("AllowModifiedNodeNames", "Allow LogiX node names to be edited and to show custom names", () => true);
+    private static ModConfigurationKey<bool> _allowModifiedNodeNames = new("AllowModifiedNodeNames",
+        "Allow LogiX node names to be edited and to show custom names", () => true);
 
-    static void press(IButton b, ButtonEventData d) { _then = Engine.Current.WorldManager.FocusedWorld.Time.WorldTime; }
+    private static void Press(IButton b, ButtonEventData d) { _then = Engine.Current.WorldManager.FocusedWorld.Time.WorldTime; }
 
-    static void hold(IButton b, ButtonEventData d, TextEditor e)
+    private static void Hold(IButton b, ButtonEventData d, TextEditor e)
     {
-        if (e == null || e.IsDestroyed || flag)
+        if (e.IsDestroyed || _flag)
             return;
         _lastTime = Engine.Current.WorldManager.FocusedWorld.Time.WorldTime - _then;
-        if (_lastTime > Config!.GetValue<double>(PressDelay))
-        {
-            flag = true;
-            e.Focus();
-        }
+        if (!(_lastTime > _config!.GetValue(_pressDelay))) return;
+        _flag = true;
+        e.Focus();
     }
-
-    static void refHold(IButton b, ButtonEventData d, IReferenceNode __instance)
+    private static void RefHold(IButton b, ButtonEventData d, IReferenceNode __instance)
     {
-        if (flag)
+        if (_flag)
             return;
         _lastTime = Engine.Current.WorldManager.FocusedWorld.Time.WorldTime - _then;
-        if (_lastTime > Config!.GetValue<double>(PressDelay))
-        {
-            flag = true;
-            InspectorHelper.OpenInspectorForTarget(__instance.Target ?? __instance, null, __instance.Target != null);
-        }
+        if (!(_lastTime > _config!.GetValue(_pressDelay))) return;
+        _flag = true;
+        InspectorHelper.OpenInspectorForTarget(__instance.Target ?? __instance, null, __instance.Target != null);
     }
-
-    static void release(IButton b, ButtonEventData d)
+    private static void Release(IButton b, ButtonEventData d)
     {
         _lastTime = 0.0;
-        flag = false;
+        _flag = false;
     }
-    static double _lastTime;
-    static bool flag = false;
-    static double _then;
     public override void OnEngineInit()
     {
-        Harmony harmony = new Harmony("net.Cyro.Nodentify");
-        Config = GetConfiguration();
-        Config!.Save(true);
+        var harmony = new Harmony("net.Cyro.Nodentify");
+        _config = GetConfiguration();
+        _config!.Save(true);
         harmony.PatchAll();
     }
-
-
     [HarmonyPatch(typeof(LogixNode), "GenerateUI")]
     static class LogixNode_GenerateUI_Patch
     {
-        static void Postfix(LogixNode __instance, UIBuilder __result, Slot root, float minWidth = 0f, float minHeight = 0f)
+        private static void Postfix(LogixNode __instance, UIBuilder __result, Slot root, float minWidth = 0f, float minHeight = 0f)
         {
-            if (__result.Current == null || !Config!.GetValue(AllowModifiedNodeNames))
+            if (__result.Current == null || !_config!.GetValue(_allowModifiedNodeNames))
                 return;
 
-            Text? t =  __result.Current.GetComponent<Text>();
+            var t =  __result.Current.GetComponent<Text>();
             if (t == null)
                 return;
-            Slot textSlot = t.Slot;
-            Slot instanceSlot = __instance.Slot;
-            instanceSlot.Tag = instanceSlot.Tag == null || instanceSlot.Tag.Length == 0 ? null : instanceSlot.Tag;
-            string? tagLabel = instanceSlot.Tag;
-            
-            string originalText = t.Content.Value;
+            var textSlot = t.Slot;
+            var instanceSlot = __instance.Slot;
+            instanceSlot.Tag = string.IsNullOrEmpty(instanceSlot.Tag) ? null : instanceSlot.Tag;
+
+            var originalText = t.Content.Value;
             t.NullContent.Value = originalText;
-            ISyncMember tagMember = instanceSlot.GetSyncMember("Tag");
+            var tagMember = instanceSlot.GetSyncMember("Tag");
             t.Content.DriveFrom((IField<string>)tagMember, true);
             textSlot.Tag = "Nodentify.Node.AlteredText";
             
-            TextEditor textEditor = textSlot.AttachComponent<TextEditor>();
+            var textEditor = textSlot.AttachComponent<TextEditor>();
             textEditor.Text.Target = t;
             textEditor.FinishHandling.Value = TextEditor.FinishAction.NullOnEmpty;
-            Button b = textSlot.AttachComponent<Button>();
-            b.LocalPressed += press;
-            b.LocalPressing += (IButton b, ButtonEventData d) => hold(b, d, textEditor);
-            b.LocalReleased += release;
+            var b = textSlot.AttachComponent<Button>();
+            b.LocalPressed += Press;
+            b.LocalPressing += (b, d) => Hold(b, d, textEditor);
+            b.LocalReleased += Release;
         }
     }
 
@@ -102,18 +94,16 @@ public class Nodentify : NeosMod
     {
         static void Postfix(IReferenceNode __instance, Slot root)
         {
-            Slot? canvas = root.FindChild((s) => s.Name == "Canvas");
-            if (canvas == null)
-                return;
-            Canvas? c = canvas.GetComponent<Canvas>();
+            var canvas = root.FindChild(s => s.Name == "Canvas");
+            var c = canvas?.GetComponent<Canvas>();
             if (c == null) return;
             c.IgnoreTouchesFromBehind.Value = false;
             canvas.Tag = "Nodentify.Node.AlteredRef";
-            Button b = canvas.AttachComponent<Button>();
-            b.LocalPressed += press;
-            b.LocalPressing += (IButton b, ButtonEventData d) => refHold(b, d, __instance);
-            b.LocalReleased += release;
-            color col = __instance.GetType().GetGenericArguments()[0].GetColor().SetA(0.8f);
+            var b = canvas.AttachComponent<Button>();
+            b.LocalPressed += Press;
+            b.LocalPressing += (b, d) => RefHold(b, d, __instance);
+            b.LocalReleased += Release;
+            var col = __instance.GetType().GetGenericArguments()[0].GetColor().SetA(0.8f);
             canvas[0].GetComponent<Image>().Tint.Value = col;
             canvas[0][0].GetComponent<Image>().Tint.Value = col;
         }
@@ -129,33 +119,31 @@ public class Nodentify : NeosMod
             
             if (__instance is IReferenceNode)
             {
-                Slot? canvas = __instance.Slot.FindChild((s) => s.Tag == "Nodentify.Node.AlteredRef");
+                var canvas = __instance.Slot.FindChild(s => s.Tag == "Nodentify.Node.AlteredRef");
                 if (canvas == null)
                     return;
                 
-                IReferenceNode? reference = __instance as IReferenceNode;
-                Button refButton = canvas.GetComponent<Button>();
-                refButton.LocalPressed += press;
-                refButton.LocalPressing += (IButton b, ButtonEventData d) => refHold(b, d, reference!);
-                refButton.LocalReleased += release;
+                var reference = __instance as IReferenceNode;
+                var refButton = canvas.GetComponent<Button>();
+                refButton.LocalPressed += Press;
+                refButton.LocalPressing += (b, d) => RefHold(b, d, reference!);
+                refButton.LocalReleased += Release;
                 return;
             }
 
-            if (!Config!.GetValue(AllowModifiedNodeNames))
+            if (!_config!.GetValue(_allowModifiedNodeNames))
                 return;
-            Slot s = __instance.Slot.FindChild((s) => s.Tag == "Nodentify.Node.AlteredText", 25);
+            var s = __instance.Slot.FindChild((s) => s.Tag == "Nodentify.Node.AlteredText", 25);
             if (s == null)
                 return;
 
-            Button b = s.GetComponent<Button>();
-            TextEditor textEditor = s.GetComponent<TextEditor>();
-
+            var b = s.GetComponent<Button>();
+            var textEditor = s.GetComponent<TextEditor>();
             if(b == null || textEditor == null)
                 return;
-            
-            b.LocalPressed += press;
-            b.LocalPressing += (IButton b, ButtonEventData d) => hold(b, d, textEditor);
-            b.LocalReleased += release;
+            b.LocalPressed += Press;
+            b.LocalPressing += (b, d) => Hold(b, d, textEditor);
+            b.LocalReleased += Release;
         }
     }
 }
